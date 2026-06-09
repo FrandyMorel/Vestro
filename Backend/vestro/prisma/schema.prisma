@@ -14,11 +14,16 @@ datasource db {
 model Plan {
   plan_id         Int             @id @default(autoincrement())
   plan_name       String          @unique
-  plan_price      Float
+  price_monthly   Float
+  price_yearly    Float
+  stripe_product_id String?
   max_users       Int
   premium_fea     String?
   created_at      DateTime        @default(now())
   updated_at      DateTime        @updatedAt
+  has_reports     Boolean    
+  has_ai          Boolean
+  has_exports     Boolean
 
   subscriptions   Subscription[]
 
@@ -26,18 +31,22 @@ model Plan {
 }
 
 model Subscription {
-  subs_id         Int             @id @default(autoincrement())
-  subs_status     String          @default("active")
-  start_date      DateTime        @default(now())
-  end_date        DateTime?
-  created_at      DateTime        @default(now())
-  updated_at      DateTime        @updatedAt
+  subs_id             Int             @id @default(autoincrement())
+  subs_status         String          @default("trial")  // trial, active, expired, cancelled
+  start_date          DateTime        @default(now())
+  end_date            DateTime?
+  trial_ends_at       DateTime?
+  created_at          DateTime        @default(now())
+  updated_at          DateTime        @updatedAt
 
-  plan_id         Int
-  comp_id         Int             @unique
+  stripe_customer_id      String?     @unique
+  stripe_subscription_id  String?     @unique
 
-  plan            Plan            @relation(fields: [plan_id], references: [plan_id], onDelete: Cascade)
-  company         Company         @relation(fields: [comp_id], references: [comp_id], onDelete: Cascade)
+  plan_id             Int
+  comp_id             Int             @unique
+
+  plan                Plan            @relation(fields: [plan_id], references: [plan_id], onDelete: Cascade)
+  company             Company         @relation(fields: [comp_id], references: [comp_id], onDelete: Cascade)
 
   @@map("subscriptions")
 }
@@ -51,6 +60,7 @@ model Company {
   comp_phone      String?
   created_at      DateTime        @default(now())
   updated_at      DateTime        @updatedAt
+  status          String @default("active") 
 
   subscription    Subscription?
   users           User[]
@@ -68,20 +78,20 @@ model User {
   user_id         Int             @id @default(autoincrement())
   user_name       String
   user_email      String
-  user_password   String
-  user_role       String
+  user_password   String      // ← Aquí irá el hash bcrypt
+  user_role       String      // ← SUPER_ADMIN, ADMIN, EMPLOYEE
   status          String          @default("active")
   created_at      DateTime        @default(now())
   updated_at      DateTime        @updatedAt
 
-  comp_id         Int
+  comp_id         Int         // ← NULL para SUPER_ADMIN, rellenado para otros
 
   company         Company         @relation(fields: [comp_id], references: [comp_id], onDelete: Cascade)
   purchases       Purchase[]
   sales           Sales[]
   expenses        Expense[]
 
-  @@unique([user_email, comp_id])
+  @@unique([user_email, comp_id]) // ← Un email por empresa + NULL para super admin
   @@map("users")
 }
 
@@ -91,6 +101,7 @@ model Product {
   product_id      Int             @id @default(autoincrement())
   product_name    String
   product_description String?
+  external_product_id   String? 
   created_at      DateTime        @default(now())
   updated_at      DateTime        @updatedAt
 
@@ -278,7 +289,7 @@ model Expense {
   exp_id          Int             @id @default(autoincrement())
   exp_title       String
   exp_description String?
-  exp_type        String          // inventory, operational, general
+  exp_type        String       
   quantity        Int?
   exp_amount      Float
   exp_currency    String
