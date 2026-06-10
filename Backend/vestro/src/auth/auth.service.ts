@@ -9,6 +9,63 @@ import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
 import * as bcrypt from "bcrypt";
 
+// Interfaces locales
+interface User {
+  user_id: number;
+  user_name: string;
+  user_email: string;
+  user_password: string;
+  user_role: string;
+  status: string;
+  comp_id: number | null;
+  company?: {
+    comp_id: number;
+    comp_name: string;
+    comp_email: string;
+    status: string;
+    subscription: {
+      subs_id: number;
+      subs_status: string;
+      plan: {
+        plan_id: number;
+        plan_name: string;
+      };
+    } | null;
+  } | null;
+}
+
+interface JwtPayload {
+  sub: number;
+  email: string;
+  role: string;
+  compId: number | null;
+}
+
+interface TokenResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: {
+    user_id: number;
+    user_name: string;
+    user_email: string;
+    user_role: string;
+    comp_id: number | null;
+  };
+}
+
+interface RegisterResponse {
+  message: string;
+  company: {
+    comp_id: number;
+    comp_name: string;
+    comp_email: string;
+  };
+  subscription: {
+    subs_id: number;
+    subs_status: string;
+  };
+}
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -19,17 +76,17 @@ export class AuthService {
   /**
    * REGISTRO: Crear empresa + admin + suscripción free
    */
-  async register(registerDto: RegisterDto) {
+  async register(registerDto: RegisterDto): Promise<RegisterResponse> {
     // 1. Validar que las contraseñas coincidan
     if (registerDto.user_password !== registerDto.user_password_confirm) {
       throw new BadRequestException("Las contraseñas no coinciden");
     }
- 
+
     // 2. Validar que no exista una empresa con ese email
     const existingCompany = await this.prisma.company.findUnique({
       where: { comp_email: registerDto.comp_email },
     });
- 
+
     if (existingCompany) {
       throw new BadRequestException("La empresa ya está registrada");
     }
@@ -66,7 +123,8 @@ export class AuthService {
           status: "active",
         },
       });
-
+      // eslint-disable-next-line prettier/prettier
+ 
       // Crear usuario (admin)
       const user = await tx.user.create({
         data: {
@@ -88,7 +146,7 @@ export class AuthService {
           trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 días
         },
       });
- 
+
       return { company, user, subscription };
     });
 
@@ -109,7 +167,7 @@ export class AuthService {
   /**
    * LOGIN: Validar credenciales y generar JWT
    */
-  async login(loginDto: LoginDto) {
+  async login(loginDto: LoginDto): Promise<TokenResponse> {
     // 1. Buscar usuario
     const user = await this.prisma.user.findFirst({
       where: { user_email: loginDto.user_email },
@@ -186,8 +244,8 @@ export class AuthService {
   /**
    * Generar JWT tokens (access + refresh)
    */
-  private generateTokens(user: any, compId: number | null) {
-    const payload = {
+  private generateTokens(user: User, compId: number | null): TokenResponse {
+    const payload: JwtPayload = {
       sub: user.user_id,
       email: user.user_email,
       role: user.user_role,
