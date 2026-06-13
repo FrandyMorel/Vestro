@@ -13,6 +13,7 @@ const auth_module_1 = require("./auth/auth.module");
 const user_module_1 = require("./user/user.module");
 const companies_module_1 = require("./companies/companies.module");
 const subscription_module_1 = require("./subscription/subscription.module");
+const plan_module_1 = require("./plan/plan.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -24,6 +25,7 @@ exports.AppModule = AppModule = __decorate([
             user_module_1.UserModule,
             companies_module_1.CompaniesModule,
             subscription_module_1.SubscriptionModule,
+            plan_module_1.PlanModule,
         ],
     })
 ], AppModule);
