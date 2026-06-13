@@ -49,7 +49,7 @@ export class CompanyController {
    * GET /companies
    * Listar todas las empresas (solo SUPER_ADMIN)
    */
-  @Get()
+  @Get("all")
   async findAll(
     @Request() req: { user: AuthenticatedUser },
   ): Promise<CompanyResponse[]> {
