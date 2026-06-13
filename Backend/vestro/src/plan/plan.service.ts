@@ -17,7 +17,7 @@ interface PlanResponse {
   has_reports: boolean;
   has_ai: boolean;
   has_exports: boolean;
-  stripe_product_id: string | null;
+  cardnet_product_id: string | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -60,7 +60,7 @@ export class PlanService {
         has_reports: createPlanDto.has_reports,
         has_ai: createPlanDto.has_ai,
         has_exports: createPlanDto.has_exports,
-        stripe_product_id: createPlanDto.stripe_product_id || null,
+        cardnet_product_id: createPlanDto.cardnet_product_id || null,
       },
     });
 

@@ -24,5 +24,5 @@ export class CreatePlanDto {
 
   @IsOptional()
   @IsString()
-  stripe_product_id?: string;
+  cardnet_product_id?: string;
 }

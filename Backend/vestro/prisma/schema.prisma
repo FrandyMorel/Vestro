@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,306 +8,261 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// 1. PLANES Y SUSCRIPCIONES
-
 model Plan {
-  plan_id         Int             @id @default(autoincrement())
-  plan_name       String          @unique
-  price_monthly   Float
-  price_yearly    Float
-  stripe_product_id String?
-  max_users       Int
-  premium_fea     String?
-  created_at      DateTime        @default(now())
-  updated_at      DateTime        @updatedAt
-  has_reports     Boolean    
-  has_ai          Boolean
-  has_exports     Boolean
-
-  subscriptions   Subscription[]
+  plan_id            Int            @id @default(autoincrement())
+  plan_name          String         @unique
+  max_users          Int
+  premium_fea        String?
+  created_at         DateTime       @default(now())
+  updated_at         DateTime       @updatedAt
+  has_ai             Boolean
+  has_exports        Boolean
+  has_reports        Boolean
+  price_monthly      Float
+  price_yearly       Float
+  cardnet_product_id String?
+  subscriptions      Subscription[]
 
   @@map("plans")
 }
 
 model Subscription {
-  subs_id             Int             @id @default(autoincrement())
-  subs_status         String          @default("trial")  // trial, active, expired, cancelled
-  start_date          DateTime        @default(now())
-  end_date            DateTime?
-  trial_ends_at       DateTime?
-  created_at          DateTime        @default(now())
-  updated_at          DateTime        @updatedAt
-
-  stripe_customer_id      String?     @unique
-  stripe_subscription_id  String?     @unique
-
-  plan_id             Int
-  comp_id             Int             @unique
-
-  plan                Plan            @relation(fields: [plan_id], references: [plan_id], onDelete: Cascade)
-  company             Company         @relation(fields: [comp_id], references: [comp_id], onDelete: Cascade)
+  subs_id                 Int       @id @default(autoincrement())
+  subs_status             String    @default("trial")
+  start_date              DateTime  @default(now())
+  end_date                DateTime?
+  created_at              DateTime  @default(now())
+  updated_at              DateTime  @updatedAt
+  plan_id                 Int
+  comp_id                 Int       @unique
+  cardnet_customer_id     String?   @unique(map: "subscriptions_stripe_customer_id_key")
+  cardnet_subscription_id String?   @unique(map: "subscriptions_stripe_subscription_id_key")
+  trial_ends_at           DateTime?
+  company                 Company   @relation(fields: [comp_id], references: [comp_id], onDelete: Cascade)
+  plan                    Plan      @relation(fields: [plan_id], references: [plan_id], onDelete: Cascade)
 
   @@map("subscriptions")
 }
 
-// 2. EMPRESAS Y USUARIOS
-
 model Company {
-  comp_id         Int             @id @default(autoincrement())
-  comp_name       String
-  comp_email      String          @unique
-  comp_phone      String?
-  created_at      DateTime        @default(now())
-  updated_at      DateTime        @updatedAt
-  status          String @default("active") 
-
-  subscription    Subscription?
-  users           User[]
-  products        Product[]
-  purchases       Purchase[]
-  sales           Sales[]
-  clients         Client[]
-  expenses        Expense[]
-  inventory       Inventory[]
+  comp_id      Int           @id @default(autoincrement())
+  comp_name    String
+  comp_email   String        @unique
+  comp_phone   String?
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @updatedAt
+  status       String        @default("active")
+  clients      Client[]
+  expenses     Expense[]
+  inventory    Inventory[]
+  products     Product[]
+  purchases    Purchase[]
+  sales        Sales[]
+  subscription Subscription?
+  users        User[]
 
   @@map("companies")
 }
 
 model User {
-  user_id         Int             @id @default(autoincrement())
-  user_name       String
-  user_email      String
-  user_password   String      // ← Aquí irá el hash bcrypt
-  user_role       String      // ← SUPER_ADMIN, ADMIN, EMPLOYEE
-  status          String          @default("active")
-  created_at      DateTime        @default(now())
-  updated_at      DateTime        @updatedAt
+  user_id       Int        @id @default(autoincrement())
+  user_name     String
+  user_email    String
+  user_password String
+  user_role     String
+  status        String     @default("active")
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @updatedAt
+  comp_id       Int
+  expenses      Expense[]
+  purchases     Purchase[]
+  sales         Sales[]
+  company       Company    @relation(fields: [comp_id], references: [comp_id], onDelete: Cascade)
 
-  comp_id         Int         // ← NULL para SUPER_ADMIN, rellenado para otros
-
-  company         Company         @relation(fields: [comp_id], references: [comp_id], onDelete: Cascade)
-  purchases       Purchase[]
-  sales           Sales[]
-  expenses        Expense[]
-
-  @@unique([user_email, comp_id]) // ← Un email por empresa + NULL para super admin
+  @@unique([user_email, comp_id])
   @@map("users")
 }
 
-// 3. PRODUCTOS Y HASHTAGS
-
 model Product {
-  product_id      Int             @id @default(autoincrement())
-  product_name    String
+  product_id          Int              @id @default(autoincrement())
+  product_name        String
   product_description String?
-  external_product_id   String? 
-  created_at      DateTime        @default(now())
-  updated_at      DateTime        @updatedAt
-
-  comp_id         Int
-
-  company         Company         @relation(fields: [comp_id], references: [comp_id], onDelete: Cascade)
-  hashtags        ProductHashtag[]
-  inventory       Inventory[]
-  purchase_details PurchaseDetail[]
-  expenses        Expense[] 
+  created_at          DateTime         @default(now())
+  updated_at          DateTime         @updatedAt
+  comp_id             Int
+  external_product_id String?
+  expenses            Expense[]
+  inventory           Inventory?
+  hashtags            ProductHashtag[]
+  company             Company          @relation(fields: [comp_id], references: [comp_id], onDelete: Cascade)
+  purchase_details    PurchaseDetail[]
 
   @@unique([product_name, comp_id])
   @@map("products")
 }
 
 model Hashtag {
-  hashtag_id      Int             @id @default(autoincrement())
-  hashtag_name    String          @unique
-  created_at      DateTime        @default(now())
-
-  products        ProductHashtag[]
+  hashtag_id   Int              @id @default(autoincrement())
+  hashtag_name String           @unique
+  created_at   DateTime         @default(now())
+  products     ProductHashtag[]
 
   @@map("hashtags")
 }
 
 model ProductHashtag {
-  prod_hash_id    Int             @id @default(autoincrement())
-
-  product_id      Int
-  hashtag_id      Int
-
-  product         Product         @relation(fields: [product_id], references: [product_id], onDelete: Cascade)
-  hashtag         Hashtag         @relation(fields: [hashtag_id], references: [hashtag_id], onDelete: Cascade)
+  prod_hash_id Int     @id @default(autoincrement())
+  product_id   Int
+  hashtag_id   Int
+  hashtag      Hashtag @relation(fields: [hashtag_id], references: [hashtag_id], onDelete: Cascade)
+  product      Product @relation(fields: [product_id], references: [product_id], onDelete: Cascade)
 
   @@unique([product_id, hashtag_id])
   @@map("product_hashtags")
 }
 
-// 4. COMPRAS Y DETALLES DE COMPRA
-
 model Purchase {
-  purch_id                    Int             @id @default(autoincrement())
-  alt_purch_name              String?
-  alt_purch_description       String?
-  purch_quantity              Int?
-  purch_currency              String?
-  purch_price                 Float?
-  dop_price                   Float?
-  added_to_inventory          Boolean         @default(false)
-  created_at                  DateTime        @default(now())
-  updated_at                  DateTime        @updatedAt
-
-  comp_id                     Int
-  user_id                     Int
-
-  company                     Company         @relation(fields: [comp_id], references: [comp_id], onDelete: Cascade)
-  user                        User            @relation(fields: [user_id], references: [user_id], onDelete: Restrict)
-  purchase_details            PurchaseDetail[]
-  expenses                    Expense[]
+  purch_id              Int              @id @default(autoincrement())
+  alt_purch_name        String?
+  alt_purch_description String?
+  purch_quantity        Int?
+  purch_currency        String?
+  purch_price           Float?
+  dop_price             Float?
+  added_to_inventory    Boolean          @default(false)
+  created_at            DateTime         @default(now())
+  updated_at            DateTime         @updatedAt
+  comp_id               Int
+  user_id               Int
+  expenses              Expense[]
+  purchase_details      PurchaseDetail[]
+  company               Company          @relation(fields: [comp_id], references: [comp_id], onDelete: Cascade)
+  user                  User             @relation(fields: [user_id], references: [user_id])
 
   @@map("purchases")
 }
 
 model PurchaseDetail {
-  purch_detail_id Int             @id @default(autoincrement())
+  purch_detail_id Int      @id @default(autoincrement())
   quantity        Int
   unit_price      Float
   drop_price      Float?
-  created_at      DateTime        @default(now())
-
+  created_at      DateTime @default(now())
   product_id      Int
   purch_id        Int
-
-  product         Product         @relation(fields: [product_id], references: [product_id], onDelete: Restrict)
-  purchase        Purchase        @relation(fields: [purch_id], references: [purch_id], onDelete: Cascade)
+  product         Product  @relation(fields: [product_id], references: [product_id])
+  purchase        Purchase @relation(fields: [purch_id], references: [purch_id], onDelete: Cascade)
 
   @@map("purchase_details")
 }
 
-// 5. INVENTARIO
-
 model Inventory {
-  inv_id                      Int             @id @default(autoincrement())
-  stock_quantity              Int
-  average_purchase_price      Float
-  last_purchase_price         Float
-  sale_price                  Float
-  status                      String          @default("available")
-  created_at                  DateTime        @default(now())
-  updated_at                  DateTime        @updatedAt
-
-  comp_id                     Int
-  product_id                  Int             @unique
-
-  company                     Company         @relation(fields: [comp_id], references: [comp_id], onDelete: Cascade)
-  product                     Product         @relation(fields: [product_id], references: [product_id], onDelete: Cascade)
-  sale_details                SaleDetail[]
-  expenses                    Expense[] 
+  inv_id                 Int          @id @default(autoincrement())
+  stock_quantity         Int
+  average_purchase_price Float
+  last_purchase_price    Float
+  sale_price             Float
+  status                 String       @default("available")
+  created_at             DateTime     @default(now())
+  updated_at             DateTime     @updatedAt
+  comp_id                Int
+  product_id             Int          @unique
+  expenses               Expense[]
+  company                Company      @relation(fields: [comp_id], references: [comp_id], onDelete: Cascade)
+  product                Product      @relation(fields: [product_id], references: [product_id], onDelete: Cascade)
+  sale_details           SaleDetail[]
 
   @@map("inventory")
 }
 
-// 6. VENTAS Y DETALLES DE VENTA
-
 model Sales {
-  sales_id        Int             @id @default(autoincrement())
-  total           Float
-  paid_amount     Float           @default(0)
-  pending_amount  Float           @default(0)
-  payment_status  String          @default("pending")
-  sale_type       String          @default("cash")
-  created_at      DateTime        @default(now())
-  updated_at      DateTime        @updatedAt
-
-  comp_id         Int
-  user_id         Int
-  client_id       Int?
-
-  company         Company         @relation(fields: [comp_id], references: [comp_id], onDelete: Cascade)
-  user            User            @relation(fields: [user_id], references: [user_id], onDelete: Restrict)
-  client          Client?         @relation(fields: [client_id], references: [client_id], onDelete: SetNull)
-  sale_details    SaleDetail[]
-  debt_payments   DebtPayment[]
+  sales_id       Int           @id @default(autoincrement())
+  total          Float
+  paid_amount    Float         @default(0)
+  pending_amount Float         @default(0)
+  payment_status String        @default("pending")
+  sale_type      String        @default("cash")
+  created_at     DateTime      @default(now())
+  updated_at     DateTime      @updatedAt
+  comp_id        Int
+  user_id        Int
+  client_id      Int?
+  debt_payments  DebtPayment[]
+  sale_details   SaleDetail[]
+  client         Client?       @relation(fields: [client_id], references: [client_id])
+  company        Company       @relation(fields: [comp_id], references: [comp_id], onDelete: Cascade)
+  user           User          @relation(fields: [user_id], references: [user_id])
 
   @@map("sales")
 }
 
 model SaleDetail {
-  sales_detail_id Int             @id @default(autoincrement())
+  sales_detail_id Int       @id @default(autoincrement())
   quantity        Int
   unit_price      Float
   sale_price      Float
   subtotal        Float
-  created_at      DateTime        @default(now())
-
+  created_at      DateTime  @default(now())
   inv_id          Int
   sales_id        Int
-
-  inventory       Inventory       @relation(fields: [inv_id], references: [inv_id], onDelete: Restrict)
-  sales           Sales           @relation(fields: [sales_id], references: [sales_id], onDelete: Cascade)
+  inventory       Inventory @relation(fields: [inv_id], references: [inv_id])
+  sales           Sales     @relation(fields: [sales_id], references: [sales_id], onDelete: Cascade)
 
   @@map("sale_details")
 }
 
-// 7. CLIENTES Y DEUDAS
-
 model Client {
-  client_id       Int             @id @default(autoincrement())
-  full_name       String
-  phone           String?
-  document        String?
-  created_at      DateTime        @default(now())
-  updated_at      DateTime        @updatedAt
-
-  comp_id         Int
-
-  company         Company         @relation(fields: [comp_id], references: [comp_id], onDelete: Cascade)
-  sales           Sales[]
-  debt_payments   DebtPayment[]
+  client_id     Int           @id @default(autoincrement())
+  full_name     String
+  phone         String?
+  document      String?
+  created_at    DateTime      @default(now())
+  updated_at    DateTime      @updatedAt
+  comp_id       Int
+  company       Company       @relation(fields: [comp_id], references: [comp_id], onDelete: Cascade)
+  debt_payments DebtPayment[]
+  sales         Sales[]
 
   @@unique([document, comp_id])
   @@map("clients")
 }
 
 model DebtPayment {
-  pay_id          Int             @id @default(autoincrement())
-  amount          Float
+  pay_id           Int      @id @default(autoincrement())
+  amount           Float
   previous_balance Float
-  new_balance     Float
-  pay_method      String?
-  created_at      DateTime        @default(now())
-
-  client_id       Int
-  sales_id        Int
-
-  client          Client          @relation(fields: [client_id], references: [client_id], onDelete: Cascade)
-  sales           Sales           @relation(fields: [sales_id], references: [sales_id], onDelete: Cascade)
+  new_balance      Float
+  pay_method       String?
+  created_at       DateTime @default(now())
+  client_id        Int
+  sales_id         Int
+  client           Client   @relation(fields: [client_id], references: [client_id], onDelete: Cascade)
+  sales            Sales    @relation(fields: [sales_id], references: [sales_id], onDelete: Cascade)
 
   @@map("debt_payments")
 }
 
-// 8. GASTOS
-
 model Expense {
-  exp_id          Int             @id @default(autoincrement())
+  exp_id          Int        @id @default(autoincrement())
   exp_title       String
   exp_description String?
-  exp_type        String       
+  exp_type        String
   quantity        Int?
   exp_amount      Float
   exp_currency    String
   exp_price       Float?
-  created_at      DateTime        @default(now())
-  updated_at      DateTime        @updatedAt
-
+  created_at      DateTime   @default(now())
+  updated_at      DateTime   @updatedAt
   comp_id         Int
   user_id         Int
-  purch_id        Int?            // Si viene de una Purchase registrada
-  product_id      Int?            // Si es producto conocido (sin inventario)
-  inv_id          Int?            // Si se agregó al inventario
-
-  company         Company         @relation(fields: [comp_id], references: [comp_id], onDelete: Cascade)
-  user            User            @relation(fields: [user_id], references: [user_id], onDelete: Restrict)
-  purchase        Purchase?       @relation(fields: [purch_id], references: [purch_id], onDelete: SetNull)
-  product         Product?        @relation(fields: [product_id], references: [product_id], onDelete: SetNull)
-  inventory       Inventory?      @relation(fields: [inv_id], references: [inv_id], onDelete: SetNull)
+  purch_id        Int?
+  inv_id          Int?
+  product_id      Int?
+  company         Company    @relation(fields: [comp_id], references: [comp_id], onDelete: Cascade)
+  inventory       Inventory? @relation(fields: [inv_id], references: [inv_id])
+  product         Product?   @relation(fields: [product_id], references: [product_id])
+  purchase        Purchase?  @relation(fields: [purch_id], references: [purch_id])
+  user            User       @relation(fields: [user_id], references: [user_id])
 
   @@map("expenses")
 }
-

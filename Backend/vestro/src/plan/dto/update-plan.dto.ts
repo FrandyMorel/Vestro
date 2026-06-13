@@ -31,5 +31,5 @@ export class UpdatePlanDto {
 
   @IsOptional()
   @IsString()
-  stripe_product_id?: string;
+  cardnet_product_id?: string;
 }

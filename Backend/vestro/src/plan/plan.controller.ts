@@ -32,7 +32,7 @@ interface PlanResponse {
   has_reports: boolean;
   has_ai: boolean;
   has_exports: boolean;
-  stripe_product_id: string | null;
+  cardnet_product_id: string | null;
   created_at: Date;
   updated_at: Date;
 }
