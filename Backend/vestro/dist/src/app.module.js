@@ -13,12 +13,20 @@ const auth_module_1 = require("./auth/auth.module");
 const user_module_1 = require("./user/user.module");
 const plan_module_1 = require("./plan/plan.module");
 const company_module_1 = require("./company/company.module");
+const subscription_module_1 = require("./subscription/subscription.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule, auth_module_1.AuthModule, user_module_1.UserModule, plan_module_1.PlanModule, company_module_1.CompanyModule],
+        imports: [
+            prisma_module_1.PrismaModule,
+            auth_module_1.AuthModule,
+            user_module_1.UserModule,
+            plan_module_1.PlanModule,
+            company_module_1.CompanyModule,
+            subscription_module_1.SubscriptionModule,
+        ],
     })
 ], AppModule);
 //# sourceMappingURL=app.module.js.map
