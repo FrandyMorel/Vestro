@@ -65,7 +65,11 @@ export class CompanyController {
     @Param("id", ParseIntPipe) id: number,
     @Request() req: { user: AuthenticatedUser },
   ): Promise<CompanyResponse> {
-    return await this.companyService.findOne(id, req.user.compId || 0, req.user.role);
+    return await this.companyService.findOne(
+      id,
+      req.user.compId || 0,
+      req.user.role,
+    );
   }
 
   /**

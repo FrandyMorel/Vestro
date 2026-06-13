@@ -5,7 +5,6 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
-import { CreateCompanyDto } from "./dto/create-company.dto";
 import { UpdateCompanyDto } from "./dto/update-company.dto";
 
 interface CompanyResponse {
@@ -43,14 +42,18 @@ export class CompanyService {
       throw new NotFoundException("Empresa no encontrada");
     }
 
-    return company as CompanyResponse;
+    return company;
   }
 
   /**
    * OBTENER empresa por ID
    * Solo SUPER_ADMIN o ADMIN de la empresa pueden verla
    */
-  async findOne(compId: number, userCompId: number, userRole: string): Promise<CompanyResponse> {
+  async findOne(
+    compId: number,
+    userCompId: number,
+    userRole: string,
+  ): Promise<CompanyResponse> {
     // Validar acceso: SUPER_ADMIN ve todo, ADMIN solo su empresa
     if (userRole !== "SUPER_ADMIN" && compId !== userCompId) {
       throw new UnauthorizedException(
@@ -75,7 +78,7 @@ export class CompanyService {
       throw new NotFoundException("Empresa no encontrada");
     }
 
-    return company as CompanyResponse;
+    return company;
   }
 
   /**
@@ -124,7 +127,7 @@ export class CompanyService {
       data: updateCompanyDto,
     });
 
-    return updatedCompany as CompanyResponse;
+    return updatedCompany;
   }
 
   /**
@@ -149,6 +152,6 @@ export class CompanyService {
       },
     });
 
-    return companies as CompanyResponse[];
+    return companies;
   }
 }
