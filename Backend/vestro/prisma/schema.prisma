@@ -35,8 +35,8 @@ model Subscription {
   updated_at              DateTime  @updatedAt
   plan_id                 Int
   comp_id                 Int       @unique
-  cardnet_customer_id     String?   @unique(map: "subscriptions_stripe_customer_id_key")
-  cardnet_subscription_id String?   @unique(map: "subscriptions_stripe_subscription_id_key")
+  cardnet_customer_id     String?   @unique(map: "subscriptions_cardnet_customer_id_key")
+  cardnet_subscription_id String?   @unique(map: "subscriptions_cardnet_subscription_id_key")
   trial_ends_at           DateTime?
   company                 Company   @relation(fields: [comp_id], references: [comp_id], onDelete: Cascade)
   plan                    Plan      @relation(fields: [plan_id], references: [plan_id], onDelete: Cascade)
