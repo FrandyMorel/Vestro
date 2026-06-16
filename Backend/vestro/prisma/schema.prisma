@@ -14,7 +14,7 @@ model Plan {
   max_users          Int
   description        String?
   next_renewal_date  DateTime?
-  crea1ted_at        DateTime       @default(now())
+  created_at         DateTime       @default(now())
   updated_at         DateTime       @updatedAt
   has_ai             Boolean
   has_exports        Boolean
