@@ -12,8 +12,9 @@ model Plan {
   plan_id            Int            @id @default(autoincrement())
   plan_name          String         @unique
   max_users          Int
-  premium_fea        String?
-  created_at         DateTime       @default(now())
+  description        String?
+  next_renewal_date  DateTime?
+  crea1ted_at        DateTime       @default(now())
   updated_at         DateTime       @updatedAt
   has_ai             Boolean
   has_exports        Boolean
