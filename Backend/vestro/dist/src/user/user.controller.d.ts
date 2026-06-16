@@ -2,13 +2,13 @@ import { UserService } from "./user.service";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { DeleteUserDto } from "./dto/delete-user.dto";
-interface AuthenticatedUser {
+interface IAuthenticatedUser {
     userId: number;
     email: string;
     role: string;
     compId: number;
 }
-interface UserResponse {
+interface IUserResponse {
     user_id: number;
     user_name: string;
     user_email: string;
@@ -17,7 +17,7 @@ interface UserResponse {
     created_at: Date;
     updated_at: Date;
 }
-interface DeleteResponse {
+interface IDeleteResponse {
     message: string;
     reason: string;
     userId: number;
@@ -26,19 +26,19 @@ export declare class UserController {
     private userService;
     constructor(userService: UserService);
     create(createUserDto: CreateUserDto, req: {
-        user: AuthenticatedUser;
-    }): Promise<UserResponse>;
+        user: IAuthenticatedUser;
+    }): Promise<IUserResponse>;
     findAll(req: {
-        user: AuthenticatedUser;
-    }): Promise<UserResponse[]>;
+        user: IAuthenticatedUser;
+    }): Promise<IUserResponse[]>;
     findOne(id: number, req: {
-        user: AuthenticatedUser;
-    }): Promise<UserResponse>;
+        user: IAuthenticatedUser;
+    }): Promise<IUserResponse>;
     update(id: number, updateUserDto: UpdateUserDto, req: {
-        user: AuthenticatedUser;
-    }): Promise<UserResponse>;
+        user: IAuthenticatedUser;
+    }): Promise<IUserResponse>;
     remove(id: number, deleteUserDto: DeleteUserDto, req: {
-        user: AuthenticatedUser;
-    }): Promise<DeleteResponse>;
+        user: IAuthenticatedUser;
+    }): Promise<IDeleteResponse>;
 }
 export {};

@@ -14,6 +14,7 @@ const user_module_1 = require("./user/user.module");
 const plan_module_1 = require("./plan/plan.module");
 const company_module_1 = require("./company/company.module");
 const subscription_module_1 = require("./subscription/subscription.module");
+const permissions_module_1 = require("./permissions/permissions.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -26,6 +27,7 @@ exports.AppModule = AppModule = __decorate([
             plan_module_1.PlanModule,
             company_module_1.CompanyModule,
             subscription_module_1.SubscriptionModule,
+            permissions_module_1.PermissionsModule,
         ],
     })
 ], AppModule);

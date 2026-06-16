@@ -1,13 +1,14 @@
 import { PlanService } from "./plan.service";
+import { PermissionService } from "../permissions/permissions.service";
 import { CreatePlanDto } from "./dto/create-plan.dto";
 import { UpdatePlanDto } from "./dto/update-plan.dto";
-interface AuthenticatedUser {
+interface IAuthenticatedUser {
     userId: number;
     email: string;
     role: string;
     compId: number | null;
 }
-interface PlanResponse {
+interface IPlanResponse {
     plan_id: number;
     plan_name: string;
     price_monthly: number;
@@ -20,19 +21,32 @@ interface PlanResponse {
     created_at: Date;
     updated_at: Date;
 }
+interface IAvailableFeatures {
+    plan_name: string;
+    subs_status: string;
+    features: {
+        reports: boolean;
+        ai: boolean;
+        exports: boolean;
+    };
+}
 export declare class PlanController {
     private planService;
-    constructor(planService: PlanService);
+    private permissionService;
+    constructor(planService: PlanService, permissionService: PermissionService);
     create(createPlanDto: CreatePlanDto, req: {
-        user: AuthenticatedUser;
-    }): Promise<PlanResponse>;
-    findAll(): Promise<PlanResponse[]>;
-    findOne(id: number): Promise<PlanResponse>;
+        user: IAuthenticatedUser;
+    }): Promise<IPlanResponse>;
+    findAll(): Promise<IPlanResponse[]>;
+    getMyFeatures(req: {
+        user: IAuthenticatedUser;
+    }): Promise<IAvailableFeatures>;
+    findOne(id: number): Promise<IPlanResponse>;
     update(id: number, updatePlanDto: UpdatePlanDto, req: {
-        user: AuthenticatedUser;
-    }): Promise<PlanResponse>;
+        user: IAuthenticatedUser;
+    }): Promise<IPlanResponse>;
     remove(id: number, req: {
-        user: AuthenticatedUser;
+        user: IAuthenticatedUser;
     }): Promise<{
         message: string;
     }>;

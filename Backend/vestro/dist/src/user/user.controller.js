@@ -19,6 +19,10 @@ const create_user_dto_1 = require("./dto/create-user.dto");
 const update_user_dto_1 = require("./dto/update-user.dto");
 const delete_user_dto_1 = require("./dto/delete-user.dto");
 const jwt_guard_1 = require("../auth/guards/jwt.guard");
+const roles_decorator_1 = require("../auth/decorator/roles.decorator");
+const roles_guard_1 = require("../auth/guards/roles.guard");
+const subscription_guard_1 = require("../auth/guards/subscription.guard");
+const max_users_guard_1 = require("../auth/guards/max-users.guard");
 let UserController = class UserController {
     userService;
     constructor(userService) {
@@ -43,6 +47,8 @@ let UserController = class UserController {
 exports.UserController = UserController;
 __decorate([
     (0, common_1.Post)(),
+    (0, common_1.UseGuards)(roles_guard_1.RolesGuard, max_users_guard_1.MaxUsersGuard),
+    (0, roles_decorator_1.Roles)("ADMIN"),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -66,6 +72,8 @@ __decorate([
 ], UserController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Put)(":id"),
+    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)("ADMIN"),
     __param(0, (0, common_1.Param)("id", common_1.ParseIntPipe)),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, common_1.Request)()),
@@ -75,6 +83,8 @@ __decorate([
 ], UserController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(":id"),
+    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)("ADMIN"),
     __param(0, (0, common_1.Param)("id", common_1.ParseIntPipe)),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, common_1.Request)()),
@@ -84,7 +94,7 @@ __decorate([
 ], UserController.prototype, "remove", null);
 exports.UserController = UserController = __decorate([
     (0, common_1.Controller)("users"),
-    (0, common_1.UseGuards)(jwt_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)(jwt_guard_1.JwtAuthGuard, subscription_guard_1.SubscriptionGuard),
     __metadata("design:paramtypes", [user_service_1.UserService])
 ], UserController);
 //# sourceMappingURL=user.controller.js.map

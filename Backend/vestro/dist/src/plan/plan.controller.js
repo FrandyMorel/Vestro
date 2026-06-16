@@ -15,19 +15,27 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PlanController = void 0;
 const common_1 = require("@nestjs/common");
 const plan_service_1 = require("./plan.service");
+const permissions_service_1 = require("../permissions/permissions.service");
 const create_plan_dto_1 = require("./dto/create-plan.dto");
 const update_plan_dto_1 = require("./dto/update-plan.dto");
 const jwt_guard_1 = require("../auth/guards/jwt.guard");
+const roles_decorator_1 = require("../auth/decorator/roles.decorator");
+const roles_guard_1 = require("../auth/guards/roles.guard");
 let PlanController = class PlanController {
     planService;
-    constructor(planService) {
+    permissionService;
+    constructor(planService, permissionService) {
         this.planService = planService;
+        this.permissionService = permissionService;
     }
     async create(createPlanDto, req) {
         return this.planService.create(createPlanDto, req.user.role);
     }
     async findAll() {
         return this.planService.findAll();
+    }
+    async getMyFeatures(req) {
+        return this.permissionService.getAvailableFeatures(req.user.compId || 0);
     }
     async findOne(id) {
         return this.planService.findOne(id);
@@ -42,6 +50,8 @@ let PlanController = class PlanController {
 exports.PlanController = PlanController;
 __decorate([
     (0, common_1.Post)(),
+    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)("SUPER_ADMIN"),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -55,6 +65,13 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], PlanController.prototype, "findAll", null);
 __decorate([
+    (0, common_1.Get)("features"),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], PlanController.prototype, "getMyFeatures", null);
+__decorate([
     (0, common_1.Get)(":id"),
     __param(0, (0, common_1.Param)("id", common_1.ParseIntPipe)),
     __metadata("design:type", Function),
@@ -63,6 +80,8 @@ __decorate([
 ], PlanController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Put)(":id"),
+    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)("SUPER_ADMIN"),
     __param(0, (0, common_1.Param)("id", common_1.ParseIntPipe)),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, common_1.Request)()),
@@ -72,6 +91,8 @@ __decorate([
 ], PlanController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(":id"),
+    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)("SUPER_ADMIN"),
     __param(0, (0, common_1.Param)("id", common_1.ParseIntPipe)),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -81,6 +102,7 @@ __decorate([
 exports.PlanController = PlanController = __decorate([
     (0, common_1.Controller)("plans"),
     (0, common_1.UseGuards)(jwt_guard_1.JwtAuthGuard),
-    __metadata("design:paramtypes", [plan_service_1.PlanService])
+    __metadata("design:paramtypes", [plan_service_1.PlanService,
+        permissions_service_1.PermissionService])
 ], PlanController);
 //# sourceMappingURL=plan.controller.js.map

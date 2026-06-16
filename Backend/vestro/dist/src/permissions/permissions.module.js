@@ -6,21 +6,18 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PlanModule = void 0;
+exports.PermissionsModule = void 0;
 const common_1 = require("@nestjs/common");
-const plan_service_1 = require("./plan.service");
-const plan_controller_1 = require("./plan.controller");
+const permissions_service_1 = require("./permissions.service");
 const prisma_module_1 = require("../prisma/prisma.module");
-const permissions_module_1 = require("../permissions/permissions.module");
-let PlanModule = class PlanModule {
+let PermissionsModule = class PermissionsModule {
 };
-exports.PlanModule = PlanModule;
-exports.PlanModule = PlanModule = __decorate([
+exports.PermissionsModule = PermissionsModule;
+exports.PermissionsModule = PermissionsModule = __decorate([
     (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule, permissions_module_1.PermissionsModule],
-        controllers: [plan_controller_1.PlanController],
-        providers: [plan_service_1.PlanService],
-        exports: [plan_service_1.PlanService],
+        imports: [prisma_module_1.PrismaModule],
+        providers: [permissions_service_1.PermissionService],
+        exports: [permissions_service_1.PermissionService],
     })
-], PlanModule);
-//# sourceMappingURL=plan.module.js.map
+], PermissionsModule);
+//# sourceMappingURL=permissions.module.js.map
