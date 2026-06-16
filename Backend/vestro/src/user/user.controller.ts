@@ -57,7 +57,7 @@ export class UserController {
     );
   }
 
-  @Get()
+  @Get("all")
   async findAll(
     @Request() req: { user: AuthenticatedUser },
   ): Promise<UserResponse[]> {
