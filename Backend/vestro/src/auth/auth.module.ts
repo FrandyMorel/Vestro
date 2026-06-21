@@ -5,7 +5,12 @@ import { AuthService } from "./auth.service";
 import { AuthController } from "./auth.controller";
 import { PrismaModule } from "../prisma/prisma.module";
 import { JwtStrategy } from "./strategies/jwt.strategy";
+import { JwtAuthGuard } from "./guards/jwt.guard";
+import { RolesGuard } from "./guards/roles.guard";
+import { SubscriptionGuard } from "./guards/subscription.guard";
+import { MaxUsersGuard } from "./guards/max-users.guard";
 import { PermissionsModule } from "../permissions/permissions.module";
+
 @Module({
   imports: [
     PrismaModule,
@@ -17,7 +22,21 @@ import { PermissionsModule } from "../permissions/permissions.module";
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
-  exports: [AuthService, JwtModule],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    JwtAuthGuard,
+    RolesGuard,
+    SubscriptionGuard,
+    MaxUsersGuard,
+  ],
+  exports: [
+    AuthService,
+    JwtModule,
+    JwtAuthGuard,
+    RolesGuard,
+    SubscriptionGuard,
+    MaxUsersGuard,
+  ],
 })
 export class AuthModule {}
