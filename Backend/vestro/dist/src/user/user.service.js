@@ -52,17 +52,36 @@ let UserService = class UserService {
         this.prisma = prisma;
     }
     async create(createUserDto, compId, userRole) {
-        if (userRole !== "ADMIN") {
+        if (userRole !== "ADMIN" && userRole !== "SUPER_ADMIN") {
             throw new common_1.UnauthorizedException("Solo administradores pueden crear usuarios");
         }
         const existingUser = await this.prisma.user.findFirst({
             where: {
                 user_email: createUserDto.user_email,
-                comp_id: compId,
             },
         });
         if (existingUser) {
-            throw new common_1.BadRequestException("El email ya está registrado en la empresa");
+            throw new common_1.BadRequestException("El email ya está registrado en el sistema");
+        }
+        const subscription = await this.prisma.subscription.findFirst({
+            where: { comp_id: compId },
+            include: { plan: true },
+        });
+        if (!subscription) {
+            throw new common_1.NotFoundException("Suscripción no encontrada");
+        }
+        if (!subscription.plan) {
+            throw new common_1.NotFoundException("Plan no encontrado");
+        }
+        const userCount = await this.prisma.user.count({
+            where: {
+                comp_id: compId,
+                status: "active",
+            },
+        });
+        if (userCount >= subscription.plan.max_users) {
+            throw new common_1.BadRequestException(`Tu plan '${subscription.plan.plan_name}' permite máximo ${subscription.plan.max_users} usuario(s). ` +
+                `Ya tienes ${userCount}. Upgrade tu suscripción para agregar más usuarios.`);
         }
         const hashedPassword = await bcrypt.hash(createUserDto.user_password, 10);
         const user = await this.prisma.user.create({
@@ -70,7 +89,7 @@ let UserService = class UserService {
                 user_name: createUserDto.user_name,
                 user_email: createUserDto.user_email,
                 user_password: hashedPassword,
-                user_role: createUserDto.user_role,
+                user_role: "EMPLOYEE",
                 status: "active",
                 comp_id: compId,
             },
@@ -113,7 +132,7 @@ let UserService = class UserService {
         return user;
     }
     async update(userId, updateUserDto, compId, userRole) {
-        if (userRole !== "ADMIN") {
+        if (userRole !== "ADMIN" && userRole !== "SUPER_ADMIN") {
             throw new common_1.UnauthorizedException("Solo administradores pueden editar usuarios");
         }
         const existingUser = await this.prisma.user.findFirst({
@@ -127,19 +146,17 @@ let UserService = class UserService {
         }
         if (updateUserDto.user_email &&
             updateUserDto.user_email !== existingUser.user_email) {
-            const emailExists = await this.prisma.user.findFirst({
-                where: {
-                    user_email: updateUserDto.user_email,
-                    comp_id: compId,
-                },
-            });
-            if (emailExists) {
-                throw new common_1.BadRequestException("El email ya está registrado en la empresa");
-            }
+            throw new common_1.BadRequestException("No puedes cambiar el email de un usuario. Contacta a soporte.");
         }
-        const dataToUpdate = { ...updateUserDto };
+        const dataToUpdate = {};
+        if (updateUserDto.user_name) {
+            dataToUpdate.user_name = updateUserDto.user_name;
+        }
         if (updateUserDto.user_password) {
             dataToUpdate.user_password = await bcrypt.hash(updateUserDto.user_password, 10);
+        }
+        if (updateUserDto.status) {
+            dataToUpdate.status = updateUserDto.status;
         }
         const updatedUser = await this.prisma.user.update({
             where: { user_id: userId },
@@ -148,7 +165,7 @@ let UserService = class UserService {
         return this.sanitizeUser(updatedUser);
     }
     async remove(userId, deleteUserDto, compId, userRole) {
-        if (userRole !== "ADMIN") {
+        if (userRole !== "ADMIN" && userRole !== "SUPER_ADMIN") {
             throw new common_1.UnauthorizedException("Solo administradores pueden eliminar usuarios");
         }
         const user = await this.prisma.user.findFirst({
@@ -161,24 +178,60 @@ let UserService = class UserService {
             throw new common_1.NotFoundException("Usuario no encontrado");
         }
         if (user.user_role === "ADMIN") {
-            const adminCount = await this.prisma.user.count({
-                where: {
-                    comp_id: compId,
-                    user_role: "ADMIN",
-                },
-            });
-            if (adminCount === 1) {
-                throw new common_1.BadRequestException("No puedes eliminar el único administrador de la empresa");
-            }
+            throw new common_1.BadRequestException("No puedes eliminar la cuenta del administrador. Contacta a soporte.");
         }
-        console.log(`[AUDITORÍA] Usuario ${userId} eliminado. Razón: ${deleteUserDto.reason}. Notas: ${deleteUserDto.notes || "N/A"}`);
-        await this.prisma.user.delete({
+        await this.prisma.user.update({
             where: { user_id: userId },
+            data: {
+                status: "deleted",
+                user_email: `${user.user_email}.deleted.${Date.now()}`,
+            },
         });
+        console.log(`[AUDITORÍA] Usuario ${userId} eliminado. Razón: ${deleteUserDto.reason}`);
         return {
-            message: "Usuario eliminado exitosamente",
+            message: `Usuario '${user.user_name}' eliminado correctamente`,
             reason: deleteUserDto.reason,
             userId: userId,
+            freed_slot: true,
+        };
+    }
+    async getUserStats(compId) {
+        const subscription = await this.prisma.subscription.findFirst({
+            where: { comp_id: compId },
+            include: { plan: true },
+        });
+        if (!subscription) {
+            throw new common_1.NotFoundException("Suscripción no encontrada");
+        }
+        if (!subscription.plan) {
+            throw new common_1.NotFoundException("Plan no encontrado");
+        }
+        const adminCount = await this.prisma.user.count({
+            where: { comp_id: compId, user_role: "ADMIN", status: "active" },
+        });
+        const employeeCount = await this.prisma.user.count({
+            where: { comp_id: compId, user_role: "EMPLOYEE", status: "active" },
+        });
+        const totalUsers = adminCount + employeeCount;
+        const availableSlots = Math.max(0, subscription.plan.max_users - totalUsers);
+        return {
+            plan_name: subscription.plan.plan_name,
+            max_users: subscription.plan.max_users,
+            current_users: totalUsers,
+            available_slots: availableSlots,
+            can_create_more: availableSlots > 0,
+            users_by_role: {
+                admin: adminCount,
+                employee: employeeCount,
+            },
+        };
+    }
+    async getAvailableEmployeeSlots(compId) {
+        const stats = await this.getUserStats(compId);
+        return {
+            available_slots: stats.available_slots,
+            can_create_more: stats.can_create_more,
+            plan_name: stats.plan_name,
         };
     }
     sanitizeUser(user) {

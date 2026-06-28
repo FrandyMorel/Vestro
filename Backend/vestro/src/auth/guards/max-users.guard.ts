@@ -60,7 +60,7 @@ export class MaxUsersGuard implements CanActivate {
 
     if (userCount >= maxAllowed) {
       throw new ForbiddenException(
-        `Tu plan '${subscription.plan.plan_name}' permite máximo ${maxAllowed} usuario(s). Ya tienes ${userCount}. Upgrade tu suscripción para agregar más usuarios.`,
+        `Tu plan '${subscription.plan.plan_name}' permite máximo ${maxAllowed} usuario(s). Ya tienes ${userCount}. Mejora tu plan para obtener mas usuaraios.`,
       );
     }
 

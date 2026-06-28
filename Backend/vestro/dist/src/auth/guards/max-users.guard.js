@@ -44,7 +44,7 @@ let MaxUsersGuard = class MaxUsersGuard {
         });
         const maxAllowed = subscription.plan.max_users;
         if (userCount >= maxAllowed) {
-            throw new common_1.ForbiddenException(`Tu plan '${subscription.plan.plan_name}' permite máximo ${maxAllowed} usuario(s). Ya tienes ${userCount}. Upgrade tu suscripción para agregar más usuarios.`);
+            throw new common_1.ForbiddenException(`Tu plan '${subscription.plan.plan_name}' permite máximo ${maxAllowed} usuario(s). Ya tienes ${userCount}. Mejora tu plan para obtener mas usuaraios.`);
         }
         return true;
     }

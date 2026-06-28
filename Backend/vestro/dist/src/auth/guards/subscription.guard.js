@@ -27,8 +27,12 @@ let SubscriptionGuard = class SubscriptionGuard {
             throw new common_1.ForbiddenException("Company ID no encontrado en JWT");
         }
         const subscription = await this.prisma.subscription.findFirst({
-            where: { comp_id: user.compId },
-            include: { plan: true },
+            where: {
+                comp_id: user.compId,
+            },
+            include: {
+                plan: true,
+            },
         });
         if (!subscription) {
             throw new common_1.ForbiddenException("Suscripción no encontrada");

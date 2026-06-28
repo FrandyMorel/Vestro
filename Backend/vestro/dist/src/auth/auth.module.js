@@ -14,6 +14,10 @@ const auth_service_1 = require("./auth.service");
 const auth_controller_1 = require("./auth.controller");
 const prisma_module_1 = require("../prisma/prisma.module");
 const jwt_strategy_1 = require("./strategies/jwt.strategy");
+const jwt_guard_1 = require("./guards/jwt.guard");
+const roles_guard_1 = require("./guards/roles.guard");
+const subscription_guard_1 = require("./guards/subscription.guard");
+const max_users_guard_1 = require("./guards/max-users.guard");
 const permissions_module_1 = require("../permissions/permissions.module");
 let AuthModule = class AuthModule {
 };
@@ -30,8 +34,22 @@ exports.AuthModule = AuthModule = __decorate([
             }),
         ],
         controllers: [auth_controller_1.AuthController],
-        providers: [auth_service_1.AuthService, jwt_strategy_1.JwtStrategy],
-        exports: [auth_service_1.AuthService, jwt_1.JwtModule],
+        providers: [
+            auth_service_1.AuthService,
+            jwt_strategy_1.JwtStrategy,
+            jwt_guard_1.JwtAuthGuard,
+            roles_guard_1.RolesGuard,
+            subscription_guard_1.SubscriptionGuard,
+            max_users_guard_1.MaxUsersGuard,
+        ],
+        exports: [
+            auth_service_1.AuthService,
+            jwt_1.JwtModule,
+            jwt_guard_1.JwtAuthGuard,
+            roles_guard_1.RolesGuard,
+            subscription_guard_1.SubscriptionGuard,
+            max_users_guard_1.MaxUsersGuard,
+        ],
     })
 ], AuthModule);
 //# sourceMappingURL=auth.module.js.map

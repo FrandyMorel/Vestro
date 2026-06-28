@@ -34,6 +34,12 @@ let UserController = class UserController {
     async findAll(req) {
         return this.userService.findAll(req.user.compId);
     }
+    async getUserStats(req) {
+        return this.userService.getUserStats(req.user.compId);
+    }
+    async getAvailableSlots(req) {
+        return this.userService.getAvailableEmployeeSlots(req.user.compId);
+    }
     async findOne(id, req) {
         return this.userService.findOne(id, req.user.compId);
     }
@@ -62,6 +68,20 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Get)("stats"),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "getUserStats", null);
+__decorate([
+    (0, common_1.Get)("available-slots"),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "getAvailableSlots", null);
 __decorate([
     (0, common_1.Get)(":id"),
     __param(0, (0, common_1.Param)("id", common_1.ParseIntPipe)),
